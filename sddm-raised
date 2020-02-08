@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# This script constantly tries to raise the window for sddm
+# making it appear over any other window that might be started
+# Requires the utility xdotool
+
+# The path to the X sessions of sddm
+SDDM_PATH=/var/run/sddm
+
+# The process name of the sddm greeter
+SDDM_GREETER_NAME=sddm-greeter
+
+function try_sddm_session() {
+	export XAUTHORITY=$1
+	export DISPLAY=:0
+
+	window_ids=$(xdotool search --pid $2)
+
+	if [[ -n $window_ids ]]; then
+		echo "Found window ids $window_ids"
+
+		for window_id in $window_ids; do
+			echo "Raising window $window_id"
+			xdotool windowraise $window_id
+		done
+	else
+		echo "Could not find any window ids for sddm"
+	fi
+}
+
+function try_all_sessions() {
+	for dir in $SDDM_PATH/*; do
+		echo "Trying session in $dir"
+		try_sddm_session $dir $1
+	done
+}
+
+while true; do
+	pid=$(pidof $SDDM_GREETER_NAME)
+	
+	if [[ -n $pid ]]; then
+		try_all_sessions $pid
+		sleep 1
+	else
+		sleep 0.25
+	fi
+done
+

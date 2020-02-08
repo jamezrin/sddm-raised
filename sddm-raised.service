@@ -1,0 +1,11 @@
+[Unit]
+Description=SDDM Raise Daemon
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/sddm-raised
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
